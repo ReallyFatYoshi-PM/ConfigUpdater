@@ -28,6 +28,13 @@ declare(strict_types = 1);
  * along with this program. If not, see
  * <https://opensource.org/licenses/GPL-3.0>.
  * ------------------------------------------------------------------------
+ * META DATA
+ * 
+ * @category Library
+ * @package  ConfigUpdate
+ * @author   Ifera <contact@tayyab.dev>
+ * @license  GPL-3.0 <https://opensource.org/licenses/GPL-3.0>
+ * @link     https://github.com/ReallyFatYoshi-PM/ConfigUpdater
  */
 
 namespace JackMD\ConfigUpdater;
@@ -36,69 +43,76 @@ use pocketmine\plugin\Plugin;
 use pocketmine\scheduler\ClosureTask;
 use pocketmine\utils\Config;
 
-class ConfigUpdater{
+class ConfigUpdater
+{
 
-	/**
-	 * @param Plugin $plugin        The plugin you are calling this from.
-	 * @param Config $config        The config you want to update.
-	 * @param string $configKey     The version key that needs to be checked in the config.
-	 * @param int    $latestVersion The latest version of the config. Needs to be integer.
-	 * @param string $updateMessage The update message that would be shown on console if the plugin is outdated.
-	 * @return bool
-	 */
-	public static function checkUpdate(Plugin $plugin, Config $config, string $configKey, int $latestVersion, string $updateMessage = ""): bool{
-		if(($config->exists($configKey)) && ((int) $config->get($configKey) === $latestVersion)){
-			return false;
-		}
+    /**
+     * @param Plugin $plugin        The plugin you are calling this from.
+     * @param Config $config        The config you want to update.
+     * @param string $configKey     The version key that needs to be checked in the config.
+     * @param int    $latestVersion The latest version of the config. Needs to be integer.
+     * @param string $updateMessage The update message that would be shown on console if the plugin is outdated.
+     * 
+     * @return bool
+     */
+    public static function checkUpdate(Plugin $plugin, Config $config, string $configKey, int $latestVersion, string $updateMessage = ""): bool
+    {
+        if(($config->exists($configKey)) && ((int) $config->get($configKey) === $latestVersion)) {
+            return false;
+        }
 
-		$configData = self::getConfigData($config);
-		$configPath = $configData["configPath"];
-		$originalConfig = $configData["configName"];
-		$oldConfig = $configData["oldConfigName"];
+        $configData = self::_getConfigData($config);
+        $configPath = $configData["configPath"];
+        $originalConfig = $configData["configName"];
+        $oldConfig = $configData["oldConfigName"];
 
-		if(trim($updateMessage) === ""){
-			$updateMessage = "Your $originalConfig file is outdated. Your old $originalConfig has been saved as $oldConfig and a new $originalConfig file has been generated. Please update accordingly.";
-		}
+        if(trim($updateMessage) === "") {
+            $updateMessage = "Your $originalConfig file is outdated. Your old $originalConfig has been saved as $oldConfig and a new $originalConfig file has been generated. Please update accordingly.";
+        }
 
-		rename($configPath . $originalConfig, $configPath . $oldConfig);
+        rename($configPath . $originalConfig, $configPath . $oldConfig);
 
-		$plugin->saveResource($originalConfig);
+        $plugin->saveResource($originalConfig);
 
-		$task = new ClosureTask(function() use ($plugin, $updateMessage): void{
-			$plugin->getLogger()->critical($updateMessage);
-		});
+        $task = new ClosureTask(
+            function () use ($plugin, $updateMessage): void {
+                $plugin->getLogger()->critical($updateMessage);
+            }
+        );
 
-		/* This task is here so that the update message can be sent after full server load */
-		$plugin->getScheduler()->scheduleDelayedTask($task, 3 * 20);
+        /* This task is here so that the update message can be sent after full server load */
+        $plugin->getScheduler()->scheduleDelayedTask($task, 3 * 20);
 
-		return true;
-	}
+        return true;
+    }
 
-	/**
-	 * Returns the path to current config, the path to the config in plugins folder, the
-	 * name of the config and the name of config suffixed with old.
-	 *
-	 * @param Config $config
-	 * @return array
-	 */
-	private static function getConfigData(Config $config): array{
-		$configPath = $config->getPath();
-		$configData = explode(".", basename($configPath));
+    /**
+     * Returns the path to current config, the path to the config in plugins folder, the
+     * name of the config and the name of config suffixed with old.
+     *
+     * @param Config $config Configuration file of the plugin.
+     * 
+     * @return array
+     */
+    private static function _getConfigData(Config $config): array
+    {
+        $configPath = $config->getPath();
+        $configData = explode(".", basename($configPath));
 
-		$configName = $configData[0];
-		$configExtension = $configData[1];
+        $configName = $configData[0];
+        $configExtension = $configData[1];
 
-		$originalConfigName = $configName . "." . $configExtension;
-		$oldConfigName = $configName . "_old." . $configExtension;
+        $originalConfigName = "{$configName}.{$configExtension}";
+        $oldConfigName = "{$configName}_old.{$configExtension}";
 
-		$configPath = str_replace($originalConfigName, "", $configPath);
-		$pluginPath = str_replace("plugin_data", "plugins", $configPath);
+        $configPath = str_replace($originalConfigName, "", $configPath);
+        $pluginPath = str_replace("plugin_data", "plugins", $configPath);
 
-		return [
-			"configPath"    => $configPath,
-			"pluginPath"    => $pluginPath,
-			"configName"    => $originalConfigName,
-			"oldConfigName" => $oldConfigName
-		];
-	}
+        return [
+        "configPath"    => $configPath,
+        "pluginPath"    => $pluginPath,
+        "configName"    => $originalConfigName,
+        "oldConfigName" => $oldConfigName
+        ];
+    }
 }
