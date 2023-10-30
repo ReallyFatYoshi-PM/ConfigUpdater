@@ -3,8 +3,13 @@
     "description": "A handy virion for PocketMine-MP plugin developers that checks if a new version of config is available. If so then it notifies the user about the new update and updates the config.",
     "type": "library",
     "license": "GPL-3.0",
+    "scripts": {
+        "phpstan": "./vendor/bin/phpstan",
+        "analyse": "php ./.github/bin/phpcs.phar ./src",
+        "fix-style": "php ./.github/bin/phpcbf.phar ./src"
+    },
     "require": {
-        "pocketmine/pocketmine-mp": "^4.0.0"
+        "pocketmine/pocketmine-mp": "^5.6.1"
     },
     "autoload": {
         "classmap": ["src"]
