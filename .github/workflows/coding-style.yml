@@ -2,7 +2,7 @@ name: coding-style
 run-name: ${{ github.repository }} fix coding style.
 on: [push]
 jobs:
-  analysis:
+  style:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
